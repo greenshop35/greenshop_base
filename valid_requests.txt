@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View; // 🌸 यह लाइन बहुत ज़रूरी है
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+
+public function boot(): void
+{
+    if (config('app.debug')) {
+        // 1. पुरानी फाइलों को साफ़ करें ताकि नया 'data-view' तुरंत दिखे 🧹
+        array_map('unlink', glob(storage_path('framework/views/*.php')));
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            try {
+                $viewPath = str_replace(base_path(), '', $view->getPath());
+                $compiled = basename(app('blade.compiler')->getCompiledPath($view->getPath()));
+                echo "<script>console.log('🔗 Mapping: " . $compiled . " ==> 📂 " . $viewPath . "');</script>";
+            } catch (\Exception $e) {}
+        });
+        // 2. टैग्स के अंदर पाथ डालने के लिए प्री-कंपाइलर 📂✨
+        \Illuminate\Support\Facades\Blade::precompiler(function ($value) {
+            
+            // सुरक्षा चक्र: अगर कोड में स्क्रिप्ट या वेंडर फाइल के संकेत हैं, तो उसे न छुएं 🛡️
+            if (preg_match('/(setTimeout|this\.|window\.|vendor)/i', $value)) {
+                return $value;
+            }
+
+            // असली पाथ निकालने का छोटा सा PHP कोड 🌸
+            $pathAttr = ' data-view="<?php echo isset($__path) ? str_replace(base_path(), \'\', $__path) : \'\'; ?>"';
+
+            // सिर्फ मुख्य HTML टैग्स में इसे जोड़ें (div, section, etc.) ✨
+            return preg_replace(
+                '/(<(?:div|section|header|footer|nav|main|article)\b(?![^>]*?\$attributes)[^>]*)/i', 
+                '$1' . $pathAttr, 
+                $value, 
+                1
+            );
+        });
+
+        // 3. कंसोल में मैपिंग दिखाने के लिए कंपोज़र 💻
+        
+    }
+}
+}
