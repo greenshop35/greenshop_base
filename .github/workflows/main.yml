@@ -3,6 +3,10 @@ on:
   push:
     branches: [ main ]
 
+env:
+  # भविष्य के अपडेट के लिए Node 24 को इनेबल करना
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 🚀
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24 # यहाँ हमने 18 की जगह 24 कर दिया है ✨
 
       - name: Install NPM
         run: npm install
@@ -21,7 +25,9 @@ jobs:
         run: npm run build
 
       - name: Zip The Build Folder
-        run: zip -r titan-build.zip public/build
+        run: |
+          mkdir -p public/build
+          zip -r titan-build.zip public/build
 
       - name: Save My Build
         uses: actions/upload-artifact@v4
