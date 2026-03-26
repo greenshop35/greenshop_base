@@ -1,0 +1,30 @@
+name: Green Shop Auto Build
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install NPM
+        run: npm install
+
+      - name: Create Build
+        run: npm run build
+
+      - name: Zip The Build Folder
+        run: zip -r titan-build.zip public/build
+
+      - name: Save My Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: GreenShop-Build
+          path: titan-build.zip
